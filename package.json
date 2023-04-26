@@ -1,0 +1,18 @@
+{
+  "name": "lambda_scrapeandupdate_rami",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.10.0",
+    "sax": "^1.2.4",
+    "unzipper": "^0.10.11"
+  }
+}
