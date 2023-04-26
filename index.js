@@ -21,20 +21,37 @@ const pool = new pg.Pool({
   port: 5432,
 });
 
-const handler = async () => {
+export const handler = async (event) => {
   const { files, cookie } = await scrapeFiles();
   //
-
+  const result = {
+    memory: 0,
+    ok: null,
+    failed: null,
+    files: [],
+  };
   // start iterate over files in order to perform DB update or Create
   for (const file of files) {
     const fname = file.fname;
     try {
       const res = await resolvePrices(pool, cookie, "rami", fname);
       console.log(res);
+      result.memory += parseFloat(res.memory.split("MB")[0]);
+      result.ok += res.result === true ? 1 : -1;
+      result.files.push(res.file_name);
     } catch (error) {
       console.log(error);
     }
   }
+
+  result.failed = result.files.length - result.ok;
+  const response = {
+    statusCode: result.files.length > 0 && !result.failed ? 200 : 401,
+    body: JSON.stringify(result),
+  };
+  return response;
 };
 
-handler();
+// handler().then((res) => {
+//   console.log(res);
+// });

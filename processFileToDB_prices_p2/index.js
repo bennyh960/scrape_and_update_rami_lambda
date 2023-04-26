@@ -10,7 +10,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
   return new Promise(async (resolveAll, rejectAll) => {
     await updatePriceFullAvilability(pool, file_name, store);
 
-    console.log("1. Start resolve:", file_name);
+    // console.log("1. Start resolve:", file_name);
     let arrOfRecoreds = [];
     //*#region   ----------- sax -------------------------
     const saxStream = sax.createStream(true); // strict mode
@@ -44,7 +44,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
 
     saxStream.on("closetag", async (nodeName) => {
       if (nodeName === "Items") {
-        console.log("2. Finish parse with sax the file");
+        // console.log("2. Finish parse with sax the file");
       }
       if (nodeName === "Item") {
         // process the current object
@@ -101,7 +101,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
 
       const endPromise = new Promise((resolve, reject) => {
         readStream.on("finish", async () => {
-          console.log("3. Finish and readStream on finish ommited -- check on.end ");
+          // console.log("3. Finish and readStream on finish ommited -- check on.end ");
           resolve();
         });
 
@@ -113,24 +113,28 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
 
       try {
         await endPromise;
-        console.log(`4. End process file with with ${numOfRecords} records`);
+        // console.log(`4. End process file with with ${numOfRecords} records`);
         if (arrOfRecoreds.length > 0) {
           await insertBatch(arrOfRecoreds, pool, store);
-          console.log("5. Work on the last items...");
+          // console.log("5. Work on the last items...");
         }
         await updateStoreFile(pool, file_name, "DONE");
         const finalMemoryUsage = process.memoryUsage().heapUsed;
         const memoryUsageDelta = (finalMemoryUsage - initialMemoryUsage) / 1024 / 1024;
-        resolveAll(
-          `==================================================================================\n
-          ${store}Prices updated with ${file_name} data.\n
-          Memory usage delta: ${memoryUsageDelta.toFixed(
-            2
-          )} MB\n===================================================================================\n\n`
-        );
+        // const strMessage2 = `==================================================================================\n
+        // ${store}Prices updated with ${file_name} data.\n
+        // Memory usage delta: ${memoryUsageDelta.toFixed(2)} MB
+        // \n===================================================================================\n\n`;
+        const strMessage = `${store}Prices updated with ${file_name} data. Memory usage delta: ${memoryUsageDelta.toFixed(
+          2
+        )} MB`;
+        resolveAll({ strMessage, result: true, memory: `${memoryUsageDelta.toFixed(2)} MB`, file_name });
       } catch (error) {
         console.log(error);
         await updateStoreFile(pool, file_name, "ERROR");
+        const finalMemoryUsage = process.memoryUsage().heapUsed;
+        const memoryUsageDelta = (finalMemoryUsage - initialMemoryUsage) / 1024 / 1024;
+        rejectAll({ strMessage: error.message, result: false, memory: memoryUsageDelta.toFixed(2) });
       } finally {
         await new Promise((resolve) => saxStream.on("end", resolve));
         pool.end();
