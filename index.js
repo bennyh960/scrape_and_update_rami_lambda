@@ -10,14 +10,20 @@ import scrapeFiles from "./getRamiFiles/index.js";
 // todo add resolve promotions
 
 // !bug: probably the memory usage not efficent , its seems like on file size of 12 mb the memory usage is 24 mb (pricefull tested)
+let config;
+try {
+  if (!process.env.POSTGRES_USER_DEV) {
+    config = await import("./db.config.js");
+  }
+} catch (error) {
+  console.error("Error importing config:", error);
+}
 
 const pool = new pg.Pool({
-  user: process.env.POSTGRES_USER_DEV || "postgres",
-  database: process.env.DB_NAME_DEV || "superim",
-  password: process.env.POSTGRES_PASSWORD_DEV || "6711904bh",
-  // host: "2" + process.env.DB_HOST_DEV,
-  host: "localhost",
-  // port: 10149,
+  user: process.env.POSTGRES_USER_DEV || config.default.user,
+  database: process.env.DB_NAME_DEV || config.default.database,
+  password: process.env.POSTGRES_PASSWORD_DEV || config.default.password,
+  host: process.env.DB_HOST_DEV ? "2" + process.env.DB_HOST_DEV : config.default.host,
   port: 5432,
 });
 
@@ -52,6 +58,6 @@ export const handler = async (event) => {
   return response;
 };
 
-// handler().then((res) => {
-//   console.log(res);
-// });
+handler().then((res) => {
+  console.log(res);
+});
