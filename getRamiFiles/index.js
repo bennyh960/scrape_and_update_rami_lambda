@@ -6,7 +6,7 @@ const scrapeFiles = async () => {
   //load login page
   const loginHtml = await loadLoginPage();
   const { data, cookie } = loginHtml;
-  console.log(data, cookie);
+  // console.log(data, cookie);
   const csrfToken = getCsrfToken(data);
   console.log(csrfToken);
   // Perform login and get new cookie

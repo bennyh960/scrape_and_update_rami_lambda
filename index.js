@@ -20,7 +20,7 @@ try {
 }
 
 let ngrokPrefix = "0";
-let ngrokPort = undefined;
+let ngrokPort = null;
 
 const pool = new pg.Pool({
   user: process.env.POSTGRES_USER_DEV || config.default.user,
@@ -61,6 +61,6 @@ export const handler = async (event) => {
   return response;
 };
 
-// handler().then((res) => {
-//   console.log(res);
-// });
+handler().then((res) => {
+  console.log(res);
+});
