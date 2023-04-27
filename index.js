@@ -19,12 +19,15 @@ try {
   console.error("Error importing config:", error);
 }
 
+let ngrokPrefix = "2";
+let ngrokPort = undefined;
+
 const pool = new pg.Pool({
   user: process.env.POSTGRES_USER_DEV || config.default.user,
   database: process.env.DB_NAME_DEV || config.default.database,
   password: process.env.POSTGRES_PASSWORD_DEV || config.default.password,
-  host: process.env.DB_HOST_DEV ? "2" + process.env.DB_HOST_DEV : config.default.host,
-  port: 5432,
+  host: process.env.DB_HOST_DEV ? ngrokPrefix + process.env.DB_HOST_DEV : config.default.host,
+  port: ngrokPort || 5432,
 });
 
 export const handler = async (event) => {
@@ -58,6 +61,6 @@ export const handler = async (event) => {
   return response;
 };
 
-handler().then((res) => {
-  console.log(res);
-});
+// handler().then((res) => {
+//   console.log(res);
+// });
