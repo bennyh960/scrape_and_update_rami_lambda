@@ -19,7 +19,7 @@ try {
   console.error("Error importing config:", error);
 }
 
-let ngrokPrefix = "2";
+let ngrokPrefix = "0";
 let ngrokPort = undefined;
 
 const pool = new pg.Pool({
