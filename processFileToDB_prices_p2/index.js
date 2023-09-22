@@ -2,13 +2,13 @@ import https from "https";
 import unzipper from "unzipper";
 import sax from "sax";
 import keyTransforms from "./keyTransforms.js";
-import { updatePriceFullAvilability, updateStoreFile, insertBatch } from "./utils.js";
+import { updatePriceFullAvailability, updateStoreFile, insertBatch } from "./utils.js";
 
 const resolvePrices = async (pool, cookie, store, file_name) => {
   let numOfRecords = 0;
   const initialMemoryUsage = process.memoryUsage().heapUsed;
   return new Promise(async (resolveAll, rejectAll) => {
-    await updatePriceFullAvilability(pool, file_name, store);
+    await updatePriceFullAvailability(pool, file_name, store);
 
     // console.log("1. Start resolve:", file_name);
     let arrOfRecoreds = [];
