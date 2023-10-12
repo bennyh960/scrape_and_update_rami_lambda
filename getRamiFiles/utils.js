@@ -7,26 +7,52 @@ export const getCsrfToken = (html) => {
 };
 
 export const filterFilesByDates = (data) => {
-  let priceFullDate = "";
-  let promoFullDate = "";
-  // todo: verify data is sorted from server of rami , if not sorted add
-  // data.sort((a, b) => new Date(b.time) - new Date(a.time)).filter...
-  return data.filter((file) => {
-    if (file.fname.split("-")[1] !== "039") return false;
+  return data.filter(
+    (file) =>
+      file.fname.split("-")[1] === "039" && new Date(file.time).getTime() > new Date().getTime() - 3 * 1000 * 3600
+  );
+};
 
-    if (file.fname.startsWith("PriceFull")) {
-      if (priceFullDate === "") priceFullDate = new Date(file.time);
-      else if (priceFullDate !== "" && new Date(file.time) > priceFullDate) priceFullDate = new Date(file.time);
-    } else if (file.fname.startsWith("PromoFull")) {
-      if (promoFullDate === "") promoFullDate = new Date(file.time);
-      else if (promoFullDate !== "" && new Date(file.time) > promoFullDate) promoFullDate = new Date(file.time);
-    }
+export const validateIfFileIsNew = async (pool, records) => {
+  if (records.length === 0) return [];
 
-    if (file.fname.startsWith("Price") && new Date(file.time) < priceFullDate) {
-      return false;
-    } else if (file.fname.startsWith("Promo") && new Date(file.time) < promoFullDate) {
-      return false;
-    }
-    return true;
-  });
+  const placeholders = Array.from(
+    Array(records.length),
+    (_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`
+  ).join(", ");
+
+  const values = records
+    .map((r) => {
+      return [r.fname, "rami", "READY", new Date(), new Date(), r.fname];
+    })
+    .flat();
+
+  const query = {
+    text: `
+        INSERT INTO utils."storeFiles" (file_name, store, status, created_at, updated_at, file_url)
+          VALUES ${placeholders}
+          ON CONFLICT (file_name)
+          DO UPDATE SET
+            status = CASE WHEN utils."storeFiles".status = \'DONE\' THEN utils."storeFiles".status ELSE \'READY\' END,
+            updated_at = NOW() 
+          WHERE utils."storeFiles".status = \'ERROR\'
+          RETURNING *;
+          `,
+    values,
+  };
+
+  // console.log(query);
+
+  const client = await pool.connect();
+  try {
+    await client.query(`DELETE FROM utils."storeFiles" WHERE updated_at < NOW() - INTERVAL '30 days';`);
+    const res = await client.query(query);
+    return Promise.resolve(res.rows);
+  } catch (e) {
+    console.log(e);
+    return Promise.reject(records);
+    // todo update to error
+  } finally {
+    client.release();
+  }
 };

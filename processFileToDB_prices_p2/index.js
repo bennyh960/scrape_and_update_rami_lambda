@@ -11,7 +11,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
     await updatePriceFullAvailability(pool, file_name, store);
 
     // console.log("1. Start resolve:", file_name);
-    let arrOfRecoreds = [];
+    let arrOfRecords = [];
     //*#region   ----------- sax -------------------------
     const saxStream = sax.createStream(true); // strict mode
 
@@ -48,15 +48,15 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
       }
       if (nodeName === "Item") {
         // process the current object
-        if (arrOfRecoreds.length <= 150 && currentObject) {
-          arrOfRecoreds.push(currentObject);
+        if (arrOfRecords.length <= 150 && currentObject) {
+          arrOfRecords.push(currentObject);
           numOfRecords += 1;
           // console.log("update");
         }
 
-        if (arrOfRecoreds.length === 150) {
-          insertBatch(arrOfRecoreds, pool, store);
-          arrOfRecoreds = [];
+        if (arrOfRecords.length === 150) {
+          insertBatch(arrOfRecords, pool, store);
+          arrOfRecords = [];
         }
 
         // reset the current object
@@ -101,7 +101,6 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
 
       const endPromise = new Promise((resolve, reject) => {
         readStream.on("finish", async () => {
-          // console.log("3. Finish and readStream on finish ommited -- check on.end ");
           resolve();
         });
 
@@ -113,18 +112,12 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
 
       try {
         await endPromise;
-        // console.log(`4. End process file with with ${numOfRecords} records`);
-        if (arrOfRecoreds.length > 0) {
-          await insertBatch(arrOfRecoreds, pool, store);
-          // console.log("5. Work on the last items...");
+        if (arrOfRecords.length > 0) {
+          await insertBatch(arrOfRecords, pool, store);
         }
         await updateStoreFile(pool, file_name, "DONE");
         const finalMemoryUsage = process.memoryUsage().heapUsed;
         const memoryUsageDelta = (finalMemoryUsage - initialMemoryUsage) / 1024 / 1024;
-        // const strMessage2 = `==================================================================================\n
-        // ${store}Prices updated with ${file_name} data.\n
-        // Memory usage delta: ${memoryUsageDelta.toFixed(2)} MB
-        // \n===================================================================================\n\n`;
         const strMessage = `${store}Prices updated with ${file_name} data. Memory usage delta: ${memoryUsageDelta.toFixed(
           2
         )} MB`;

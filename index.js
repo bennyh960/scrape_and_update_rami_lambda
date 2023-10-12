@@ -1,6 +1,7 @@
 import pg from "pg";
 import resolvePrices from "./processFileToDB_prices_p2/index.js";
 import scrapeFiles from "./getRamiFiles/index.js";
+import { validateIfFileIsNew } from "./getRamiFiles/utils.js";
 
 // todo open repo on github and integrate with github
 // todo create aws lambda function
@@ -32,7 +33,9 @@ const pool = new pg.Pool({
 
 export const handler = async (event) => {
   const { files, cookie } = await scrapeFiles();
-  //
+
+  const validateFiles = await validateIfFileIsNew(pool, files);
+
   const result = {
     memory: 0,
     ok: null,
@@ -40,11 +43,11 @@ export const handler = async (event) => {
     files: [],
   };
   // start iterate over files in order to perform DB update or Create
-  for (const file of files) {
-    const fname = file.fname;
+  for (const file of validateFiles) {
+    const fname = file.file_name;
     try {
       const res = await resolvePrices(pool, cookie, "rami", fname);
-      console.log(res);
+      // console.log(res);
       result.memory += parseFloat(res.memory.split("MB")[0]);
       result.ok += res.result === true ? 1 : -1;
       result.files.push(res.file_name);
