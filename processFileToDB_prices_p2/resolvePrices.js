@@ -5,10 +5,10 @@ import keyTransforms from "./keyTransforms.js";
 import { updatePriceFullAvailability, updateStoreFile, insertBatch } from "./utils.js";
 
 const resolvePrices = async (pool, cookie, store, file_name) => {
-  let numOfRecords = 0;
+  // let numOfRecords = 0;
   const initialMemoryUsage = process.memoryUsage().heapUsed;
   return new Promise(async (resolveAll, rejectAll) => {
-    await updatePriceFullAvailability(pool, file_name, store);
+    await updatePriceFullAvailability(pool, file_name);
 
     // console.log("1. Start resolve:", file_name);
     let arrOfRecords = [];
@@ -50,7 +50,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
         // process the current object
         if (arrOfRecords.length <= 150 && currentObject) {
           arrOfRecords.push(currentObject);
-          numOfRecords += 1;
+          // numOfRecords += 1;
           // console.log("update");
         }
 

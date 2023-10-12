@@ -1,9 +1,9 @@
-export const updatePriceFullAvailability = async (pool, file_name, store) => {
+export const updatePriceFullAvailability = async (pool, file_name) => {
   if (file_name.startsWith("PriceFull")) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query(`UPDATE products."${store}Prices" SET available = false`);
+      await client.query(`UPDATE products."Prices" SET available = false WHERE store = 'rami'`);
       await client.query("COMMIT");
     } catch (e) {
       await client.query("ROLLBACK");

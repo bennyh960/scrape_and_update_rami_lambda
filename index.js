@@ -1,5 +1,5 @@
 import pg from "pg";
-import resolvePrices from "./processFileToDB_prices_p2/index.js";
+import resolvePrices from "./processFileToDB_prices_p2/resolvePrices.js";
 import scrapeFiles from "./getRamiFiles/index.js";
 import { validateIfFileIsNew } from "./getRamiFiles/utils.js";
 
@@ -33,7 +33,8 @@ const pool = new pg.Pool({
 
 export const handler = async (event) => {
   const { files, cookie } = await scrapeFiles();
-
+  console.log(files);
+  return;
   const validateFiles = await validateIfFileIsNew(pool, files);
 
   const result = {
