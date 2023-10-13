@@ -2,13 +2,14 @@ import https from "https";
 import unzipper from "unzipper";
 import sax from "sax";
 
-import { keyTransforms, floatsKeys, integerKeys } from "./keyTransforms.mjs";
-import { deleteOldPromotions, insertBatch } from "./utils.mjs";
-import { updateStoreFile } from "../processFileToDB_prices_p2/utils";
+import { keyTransforms, floatsKeys, integerKeys } from "./keyTransforms.js";
+import { deleteOldPromotions, insertBatch } from "./utils.js";
+import { updateStoreFile } from "../processFileToDB_prices_p2/utils.js";
 
 const restrictedPromotionId = [];
 
 async function resolvePromotion(pool, cookie, store, file_name) {
+  const initialMemoryUsage = process.memoryUsage().heapUsed;
   return new Promise((resolveAll) => {
     // delete old promotions
     deleteOldPromotions(store, pool);
@@ -120,7 +121,7 @@ async function resolvePromotion(pool, cookie, store, file_name) {
 
       const unzipCB = (entry) => {
         if (entry.path.endsWith(".xml")) {
-          entry.pipe(saxStream);
+          entry.pipe(parser);
         } else {
           entry.autodrain();
         }
@@ -145,10 +146,18 @@ async function resolvePromotion(pool, cookie, store, file_name) {
           await insertBatch(items, pool, store);
         }
         await updateStoreFile(pool, file_name, "DONE");
-        resolveAll(`${store} Promotions updated with ${file_name} data.`);
+        const finalMemoryUsage = process.memoryUsage().heapUsed;
+        const memoryUsageDelta = (finalMemoryUsage - initialMemoryUsage) / 1024 / 1024;
+        const strMessage = `${store}Prices updated with ${file_name} data. Memory usage delta: ${memoryUsageDelta.toFixed(
+          2
+        )} MB`;
+        resolveAll({ strMessage, result: true, memory: `${memoryUsageDelta.toFixed(2)} MB`, file_name });
       } catch (error) {
         console.log(error);
         await updateStoreFile(pool, file_name, "ERROR");
+        const finalMemoryUsage = process.memoryUsage().heapUsed;
+        const memoryUsageDelta = (finalMemoryUsage - initialMemoryUsage) / 1024 / 1024;
+        rejectAll({ strMessage: error.message, result: false, memory: memoryUsageDelta.toFixed(2) });
       } finally {
         await new Promise((resolve) => parser.on("end", resolve));
         pool.end();

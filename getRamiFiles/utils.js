@@ -6,10 +6,10 @@ export const getCsrfToken = (html) => {
   return token.trim();
 };
 
-export const filterFilesByDates = (data) => {
+export const filterFilesByDates = (data, hours = 3) => {
   return data.filter(
     (file) =>
-      file.fname.split("-")[1] === "039" && new Date(file.time).getTime() > new Date().getTime() - 3 * 1000 * 3600
+      file.fname.split("-")[1] === "039" && new Date(file.time).getTime() > new Date().getTime() - hours * 1000 * 3600
   );
 };
 

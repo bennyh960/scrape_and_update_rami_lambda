@@ -2,6 +2,7 @@ import pg from "pg";
 import resolvePrices from "./processFileToDB_prices_p2/resolvePrices.js";
 import scrapeFiles from "./getRamiFiles/index.js";
 import { validateIfFileIsNew } from "./getRamiFiles/utils.js";
+import resolvePromotion from "./processFileToDB_promostions_p2/resolvePropmotions.js";
 
 // todo open repo on github and integrate with github
 // todo create aws lambda function
@@ -33,8 +34,7 @@ const pool = new pg.Pool({
 
 export const handler = async (event) => {
   const { files, cookie } = await scrapeFiles();
-  console.log(files);
-  return;
+
   const validateFiles = await validateIfFileIsNew(pool, files);
 
   const result = {
@@ -47,13 +47,18 @@ export const handler = async (event) => {
   for (const file of validateFiles) {
     const fname = file.file_name;
     try {
-      const res = await resolvePrices(pool, cookie, "rami", fname);
+      let res;
+      if (fname.startsWith("xprice")) res = await resolvePrices(pool, cookie, "rami", fname);
+      else if (fname.startsWith("price")) continue;
+      else if (fname.startsWith("promo")) res = await resolvePromotion(pool, cookie, "rami", fname);
+      else throw new Error("resolvers problem");
       // console.log(res);
-      result.memory += parseFloat(res.memory.split("MB")[0]);
+      result.memory += parseFloat(res?.memory.split("MB")[0]);
       result.ok += res.result === true ? 1 : -1;
       result.files.push(res.file_name);
     } catch (error) {
       console.log(error);
+      console.log(fname);
     }
   }
 

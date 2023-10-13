@@ -16,9 +16,8 @@ const scrapeFiles = async () => {
   // get /file content html in order to get the new token
   const fileData = await getFile(newSessionCookie);
   const csrfToken2 = getCsrfToken(fileData);
-  // await new Promise((resolve) => setTimeout(resolve, 2500));
-  const { aaData, cookieForFiles } = await getTableData(newSessionCookie, csrfToken2, 600); // last arg is sizeOfData need to decide about the size
-  const files = filterFilesByDates(aaData);
+  const { aaData, cookieForFiles } = await getTableData(newSessionCookie, csrfToken2, 1600); // last arg is sizeOfData need to decide about the size
+  const files = filterFilesByDates(aaData, 10);
 
   return {
     files,
