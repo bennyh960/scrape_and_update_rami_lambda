@@ -21,8 +21,8 @@ try {
   console.error("Error importing config:", error);
 }
 
-let ngrokPrefix = "0";
-let ngrokPort = null;
+let ngrokPrefix = "7";
+let ngrokPort = 10344;
 
 const pool = new pg.Pool({
   user: process.env.POSTGRES_USER_DEV || config.default.user,
