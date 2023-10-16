@@ -95,6 +95,7 @@ export async function insertBatch(records, pool, store) {
             allow_discount = EXCLUDED.allow_discount,
             item_status = EXCLUDED.item_status,
             available = true
+            WHERE products."Prices".price_update_date < EXCLUDED.price_update_date;
             `,
       values
     );

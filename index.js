@@ -48,8 +48,7 @@ export const handler = async (event) => {
     const fname = file.file_name;
     try {
       let res;
-      if (fname.startsWith("xprice")) res = await resolvePrices(pool, cookie, "rami", fname);
-      else if (fname.startsWith("price")) continue;
+      if (fname.startsWith("price")) res = await resolvePrices(pool, cookie, "rami", fname);
       else if (fname.startsWith("promo")) res = await resolvePromotion(pool, cookie, "rami", fname);
       else throw new Error("resolvers problem");
       // console.log(res);

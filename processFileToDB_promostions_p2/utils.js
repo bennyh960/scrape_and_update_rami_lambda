@@ -91,7 +91,7 @@ export async function insertBatch(records, pool, store) {
                 discounted_price_per_mida = EXCLUDED.discounted_price_per_mida,
                 min_no_of_items_offered = EXCLUDED.min_no_of_items_offered,
                 additional_gift_count = EXCLUDED.additional_gift_count
-                WHERE products."Promotions".promotion_update_date >= EXCLUDED.promotion_update_date
+                WHERE products."Promotions".promotion_update_date < EXCLUDED.promotion_update_date
               `,
       values
     );

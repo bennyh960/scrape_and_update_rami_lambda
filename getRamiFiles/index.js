@@ -8,7 +8,7 @@ const scrapeFiles = async () => {
   const { data, cookie } = loginHtml;
   // console.log(data, cookie);
   const csrfToken = getCsrfToken(data);
-  console.log(csrfToken);
+  // console.log(csrfToken);
   // Perform login and get new cookie
   const newSessionCookie = await login(csrfToken, cookie);
   // await new Promise((resolve) => setTimeout(resolve, 1000));
