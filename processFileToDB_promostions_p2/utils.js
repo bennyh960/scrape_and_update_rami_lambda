@@ -1,4 +1,6 @@
-export async function insertBatch(records, pool, store) {
+import { ramiStoreFKId } from "../index.js";
+
+export async function insertBatch(records, pool) {
   // console.log(`connect to db with ${records.length} records and ${recordsNum} as recordsNum from bath ${batchNum}`);
   const client = await pool.connect();
   try {
@@ -22,7 +24,7 @@ export async function insertBatch(records, pool, store) {
         // if (!r) console.log(`Processing record ${i}:`, r);
         // console.log(r.club_id, typeof r.club_id, typeof [...r.club_id], [...r.club_id], typeof r.club_id[0]);
         return [
-          store,
+          ramiStoreFKId,
           r.promotion_update_date,
           r.item_code || "ERROR_itemCode",
           r.item_type,
@@ -48,8 +50,8 @@ export async function insertBatch(records, pool, store) {
       .flat();
 
     await client.query(
-      `INSERT INTO products."Promotions" (
-        store,
+      `INSERT INTO public."Promotions" (
+        store_id,
         promotion_update_date,
         item_code,
         item_type,
@@ -72,7 +74,7 @@ export async function insertBatch(records, pool, store) {
         additional_gift_count
       )
             VALUES ${placeholders}
-            ON CONFLICT (item_code,promotion_id,store) DO UPDATE SET
+            ON CONFLICT (item_code,promotion_id,store_id) DO UPDATE SET
                 promotion_update_date = EXCLUDED.promotion_update_date,
                 item_type = EXCLUDED.item_type,
                 is_gift_item = EXCLUDED.is_gift_item,
@@ -91,7 +93,7 @@ export async function insertBatch(records, pool, store) {
                 discounted_price_per_mida = EXCLUDED.discounted_price_per_mida,
                 min_no_of_items_offered = EXCLUDED.min_no_of_items_offered,
                 additional_gift_count = EXCLUDED.additional_gift_count
-                WHERE products."Promotions".promotion_update_date < EXCLUDED.promotion_update_date
+                WHERE public."Promotions".promotion_update_date < EXCLUDED.promotion_update_date
               `,
       values
     );
@@ -104,7 +106,7 @@ export async function insertBatch(records, pool, store) {
       console.log(e.message);
       // logDuplicateItems(records);
       const uniqueArr = getUniqueItems(records);
-      insertBatch(uniqueArr, pool, store);
+      insertBatch(uniqueArr, pool);
     } else {
       console.log("insertBatch ERROR:", e);
       throw e;
@@ -114,11 +116,13 @@ export async function insertBatch(records, pool, store) {
   }
 }
 
-export async function deleteOldPromotions(store, pool) {
+export async function deleteOldPromotions(pool) {
   const client = await pool.connect();
   try {
     await client.query("COMMIT");
-    await client.query(`DELETE FROM products."Promotions" WHERE store = '${store}' AND promotion_end_date < NOW()`);
+    await client.query(
+      `DELETE FROM public."Promotions" WHERE store_id = ${ramiStoreFKId} AND promotion_end_date < NOW()`
+    );
   } catch (error) {
     await client.query("ROLLBACK");
   } finally {

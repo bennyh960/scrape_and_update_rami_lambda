@@ -1,9 +1,11 @@
+import { ramiStoreFKId } from "../index.js";
+
 export const updatePriceFullAvailability = async (pool, file_name) => {
   if (file_name.startsWith("PriceFull")) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      await client.query(`UPDATE products."Prices" SET available = false WHERE store = 'rami'`);
+      await client.query(`UPDATE public."Prices" SET available = false WHERE store_id = ${ramiStoreFKId}`);
       await client.query("COMMIT");
     } catch (e) {
       await client.query("ROLLBACK");
@@ -31,7 +33,7 @@ export async function updateStoreFile(pool, file_name, status) {
   }
 }
 
-export async function insertBatch(records, pool, store) {
+export async function insertBatch(records, pool) {
   const client = await pool.connect();
 
   try {
@@ -53,7 +55,7 @@ export async function insertBatch(records, pool, store) {
       .map((r) => {
         // if (!r) console.log(`Processing record ${i}:`, r);
         return [
-          store,
+          ramiStoreFKId,
           r.price_update_date || new Date(),
           r.item_code || "ERROR_itemCode",
           r.item_type,
@@ -76,9 +78,9 @@ export async function insertBatch(records, pool, store) {
       .flat();
 
     await client.query(
-      `INSERT INTO products."Prices" (store, price_update_date, item_code, item_type, item_name, manufacturer_name, manufacture_country, manufacturer_item_description, unit_qty, quantity, b_is_weighted, unit_of_measure, qty_in_package, item_price, unit_of_measure_price, allow_discount, item_status, available)
+      `INSERT INTO public."Prices" (store_id, price_update_date, item_code, item_type, item_name, manufacturer_name, manufacture_country, manufacturer_item_description, unit_qty, quantity, b_is_weighted, unit_of_measure, qty_in_package, item_price, unit_of_measure_price, allow_discount, item_status, available)
             VALUES ${placeholders}
-            ON CONFLICT (item_code,store) DO UPDATE SET
+            ON CONFLICT (item_code,store_id) DO UPDATE SET
             price_update_date = EXCLUDED.price_update_date,
             item_type = EXCLUDED.item_type,
             item_name = EXCLUDED.item_name,
@@ -95,7 +97,7 @@ export async function insertBatch(records, pool, store) {
             allow_discount = EXCLUDED.allow_discount,
             item_status = EXCLUDED.item_status,
             available = true
-            WHERE products."Prices".price_update_date < EXCLUDED.price_update_date;
+            WHERE public."Prices".price_update_date < EXCLUDED.price_update_date;
             `,
       values
     );
@@ -109,7 +111,7 @@ export async function insertBatch(records, pool, store) {
       const uniqueArr = Array.from(new Set(records.map((item) => item.item_code))).map((itemCode) => {
         return records.find((item) => item.item_code === itemCode);
       });
-      insertBatch(uniqueArr, pool, store);
+      insertBatch(uniqueArr, pool);
     } else {
       //! for dev only throw error
       // throw e;

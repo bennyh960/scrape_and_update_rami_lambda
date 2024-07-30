@@ -55,7 +55,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
         }
 
         if (arrOfRecords.length === 150) {
-          insertBatch(arrOfRecords, pool, store);
+          insertBatch(arrOfRecords, pool);
           arrOfRecords = [];
         }
 
@@ -113,7 +113,7 @@ const resolvePrices = async (pool, cookie, store, file_name) => {
       try {
         await endPromise;
         if (arrOfRecords.length > 0) {
-          await insertBatch(arrOfRecords, pool, store);
+          await insertBatch(arrOfRecords, pool);
         }
         await updateStoreFile(pool, file_name, "DONE");
         const finalMemoryUsage = process.memoryUsage().heapUsed;

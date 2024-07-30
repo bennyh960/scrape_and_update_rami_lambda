@@ -12,7 +12,7 @@ async function resolvePromotion(pool, cookie, store, file_name) {
   const initialMemoryUsage = process.memoryUsage().heapUsed;
   return new Promise((resolveAll) => {
     // delete old promotions
-    deleteOldPromotions(store, pool);
+    deleteOldPromotions(pool);
 
     const parser = sax.createStream(true);
     let currentObject = null;
@@ -56,7 +56,7 @@ async function resolvePromotion(pool, cookie, store, file_name) {
 
       if (items.length > 100) {
         //   update DB
-        insertBatch(items, pool, store);
+        insertBatch(items, pool);
         items = [];
       }
     };
@@ -143,7 +143,7 @@ async function resolvePromotion(pool, cookie, store, file_name) {
       try {
         await await endPromise;
         if (items.length > 0) {
-          await insertBatch(items, pool, store);
+          await insertBatch(items, pool);
         }
         await updateStoreFile(pool, file_name, "DONE");
         const finalMemoryUsage = process.memoryUsage().heapUsed;

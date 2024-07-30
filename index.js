@@ -11,6 +11,8 @@ import resolvePromotion from "./processFileToDB_promostions_p2/resolvePropmotion
 // todo perform another filter according DB store files
 // todo add resolve promotions
 
+export const ramiStoreFKId = 6;
+
 // !bug: probably the memory usage not efficent , its seems like on file size of 12 mb the memory usage is 24 mb (pricefull tested)
 let config;
 try {
@@ -22,19 +24,19 @@ try {
 }
 
 let ngrokPrefix = "7";
-let ngrokPort = 10344;
+let ngrokPort = 5432;
 
 const pool = new pg.Pool({
   user: process.env.POSTGRES_USER_DEV || config.default.user,
   database: process.env.DB_NAME_DEV || config.default.database,
   password: process.env.POSTGRES_PASSWORD_DEV || config.default.password,
   host: process.env.DB_HOST_DEV ? ngrokPrefix + process.env.DB_HOST_DEV : config.default.host,
-  port: ngrokPort || 5432,
+  port: process.env.POSTGRES_USER_DEV ? ngrokPort : 5432,
 });
 
 export const handler = async (event) => {
+  // console.log("pool", pool);
   const { files, cookie } = await scrapeFiles();
-
   const validateFiles = await validateIfFileIsNew(pool, files);
 
   const result = {
@@ -69,6 +71,6 @@ export const handler = async (event) => {
   return response;
 };
 
-handler().then((res) => {
-  console.log(res);
-});
+// handler().then((res) => {
+//   console.log(res);
+// });
